@@ -6,7 +6,7 @@
 class SandboxLayer : public GLCore::Layer
 {
 public:
-	SandboxLayer();
+	SandboxLayer(uint32_t width, uint32_t height);
 	virtual ~SandboxLayer();
 
 	virtual void OnAttach() override;
@@ -15,4 +15,5 @@ public:
 	virtual void OnUpdate(GLCore::Timestep ts) override;
 	virtual void OnImGuiRender() override;
 private:
+	GLCore::Utils::Shader* m_Shader;
 };

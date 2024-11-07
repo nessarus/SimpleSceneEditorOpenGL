@@ -20,11 +20,9 @@ glm::mat4 projection; // Projection matrix - set in the reshape function
 glm::mat4 view; // View matrix - set in the display function.
 
 // These are used to set the window title
-extern char* programName; // Set in main 
-char title[256];
 char lab[] = "Project1";
+char* programName = NULL; // Set in main 
 int numDisplayCalls = 0; // Used to calculate the number of frames per second
-float displayTimer_msecs = 0;
 
 //------Meshes----------------------------------------------------------------
 // Uses the type aiMesh from ../../assimp--3.0.1270/include/assimp/mesh.h
@@ -146,26 +144,6 @@ void loadMeshIfNotAlreadyLoaded(int meshNumber)
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0,
                            BUFFER_OFFSET(sizeof(float)*6*mesh->mNumVertices) );
     glEnableVertexAttribArray( vNormal );
-}
-
-//----------------------------------------------------------------------------
-
-static void mouseClickOrScroll(int button, bool pressed, int mods, float x, float y)
-{
-    if (button == HZ_MOUSE_BUTTON_LEFT && pressed) {
-        if (mods != HZ_MOD_SHIFT) activateTool(button);
-        else activateTool(HZ_MOUSE_BUTTON_LEFT);
-    }
-    else if (button == HZ_MOUSE_BUTTON_LEFT && !pressed) deactivateTool();
-    else if (button == HZ_MOUSE_BUTTON_MIDDLE && pressed) { activateTool(button); }
-    else if (button == HZ_MOUSE_BUTTON_MIDDLE && !pressed) deactivateTool();
-
-    else if (button == 3) { // scroll up
-        viewDist = (viewDist < 0.0f ? viewDist : viewDist * 0.8f) - 0.05f;
-    }
-    else if (button == 4) { // scroll down
-        viewDist = (viewDist < 0.0f ? viewDist : viewDist * 1.25f) + 0.05f;
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -340,14 +318,15 @@ void display( void )
     // Set the view matrix. To start with this just moves the camera
     // backwards.  You'll need to add appropriate rotations.
 
-    view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -viewDist));
+    view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -viewDist)); // *
+        //glm::rotate(glm::mat4(1.0f), glm::radians(camRotUpAndOverDeg), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        //glm::rotate(glm::mat4(1.0f), glm::radians(camRotSidewaysDeg), glm::vec3(0.0f, 1.0f, 0.0f));
 
     SceneObject lightObj1 = sceneObjs[1];
     glm::vec4 lightPosition = view * lightObj1.loc;
 
     glUniform4fv(glGetUniformLocation(shaderProgram, "LightPosition"), 
-        1, glm::value_ptr(lightPosition));
-
+1, glm::value_ptr(lightPosition));
     for (int i = 0; i < nObjects; i++) {
         SceneObject so = sceneObjs[i];
 
@@ -547,7 +526,7 @@ static void makeMenu()
 
 //----------------------------------------------------------------------------
 
-void reshape( int width, int height )
+void reshape(int width, int height)
 {
     windowWidth = width;
     windowHeight = height;
@@ -567,23 +546,6 @@ void reshape( int width, int height )
         nearDist * (float)width / (float)height,
         -nearDist, nearDist,
         nearDist, 100.0f);
-}
-
-bool timer(float msecs)
-{
-    displayTimer_msecs += msecs;
-
-    if (displayTimer_msecs > 1000.0f)
-    {
-        sprintf_s(title, sizeof(title), "%s %s: %d Frames Per Second @ %d x %d",
-            lab, programName, numDisplayCalls, windowWidth, windowHeight);
-
-        numDisplayCalls = 0;
-        displayTimer_msecs = 0.0f;
-        return true;
-    }
-
-    return false;
 }
 
 using namespace GLCore;
@@ -638,18 +600,28 @@ void SandboxLayer::OnEvent(Event& event)
         return false;
         });
     dispatcher.Dispatch<MouseButtonPressedEvent>([&](MouseButtonPressedEvent& e) {
-        mouseClickOrScroll(e.GetMouseButton(), true, e.GetMods(), mouseX, mouseY);
+        if (e.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT) {
+            if (e.GetMods() == HZ_MOD_SHIFT)
+                activateTool(HZ_MOUSE_BUTTON_MIDDLE);
+            else
+                activateTool(HZ_MOUSE_BUTTON_LEFT);
+        }
+        else if (e.GetMouseButton() == HZ_MOUSE_BUTTON_MIDDLE)
+            activateTool(e.GetMouseButton());
         return false;
         });
     dispatcher.Dispatch<MouseButtonReleasedEvent>([&](MouseButtonReleasedEvent& e) {
-        mouseClickOrScroll(e.GetMouseButton(), false, e.GetMods(), mouseX, mouseY);
+        if (e.GetMouseButton() == HZ_MOUSE_BUTTON_LEFT)
+            deactivateTool();
+        else if (e.GetMouseButton() == HZ_MOUSE_BUTTON_MIDDLE)
+            deactivateTool();
         return false;
         });
     dispatcher.Dispatch<MouseScrolledEvent>([&](MouseScrolledEvent& e) {
         if (e.GetYOffset() > 0) // scroll up
-            mouseClickOrScroll(3, true, 0, mouseX, mouseY);
+            viewDist = (viewDist < 0.0 ? viewDist : viewDist * 0.8f) - 0.05f * e.GetYOffset();
         else // scroll down
-            mouseClickOrScroll(4, true, 0, mouseX, mouseY);
+            viewDist = (viewDist < 0.0 ? viewDist : viewDist * 1.25f) - 0.05f * e.GetYOffset();
         return false;
         });
 }
@@ -658,12 +630,6 @@ void SandboxLayer::OnUpdate(Timestep ts)
 {
     // Render here
     display();
-
-    if (timer(ts.GetMilliseconds()))
-    {
-        auto& window = Application::Get().GetWindow();
-        window.SetTitle(title);
-    }
 }
 
 void SandboxLayer::OnImGuiRender()

@@ -6,12 +6,10 @@ using namespace GLCore::Utils;
 ExampleLayer::ExampleLayer()
 	: m_CameraController(16.0f / 9.0f)
 {
-
 }
 
 ExampleLayer::~ExampleLayer()
 {
-
 }
 
 void ExampleLayer::OnAttach()

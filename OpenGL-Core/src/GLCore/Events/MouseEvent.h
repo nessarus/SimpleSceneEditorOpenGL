@@ -52,20 +52,22 @@ namespace GLCore {
 	{
 	public:
 		inline int GetMouseButton() const { return m_Button; }
+		inline int GetMods() const { return m_Mods; }
 
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 	protected:
-		MouseButtonEvent(int button)
-			: m_Button(button) {}
+		MouseButtonEvent(int button, int mods)
+			: m_Button(button), m_Mods(mods) {}
 
 		int m_Button;
+		int m_Mods;
 	};
 
 	class MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonPressedEvent(int button)
-			: MouseButtonEvent(button) {}
+		MouseButtonPressedEvent(int button, int mods)
+			: MouseButtonEvent(button, mods) {}
 
 		std::string ToString() const override
 		{
@@ -80,8 +82,8 @@ namespace GLCore {
 	class MouseButtonReleasedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonReleasedEvent(int button)
-			: MouseButtonEvent(button) {}
+		MouseButtonReleasedEvent(int button, int mods)
+			: MouseButtonEvent(button, mods) {}
 
 		std::string ToString() const override
 		{

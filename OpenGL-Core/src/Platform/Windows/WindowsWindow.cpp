@@ -121,13 +121,13 @@ namespace GLCore {
 			{
 				case GLFW_PRESS:
 				{
-					MouseButtonPressedEvent event(button);
+					MouseButtonPressedEvent event(button, mods);
 					data.EventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					MouseButtonReleasedEvent event(button);
+					MouseButtonReleasedEvent event(button, mods);
 					data.EventCallback(event);
 					break;
 				}
@@ -160,6 +160,11 @@ namespace GLCore {
 	{
 		glfwPollEvents();
 		glfwSwapBuffers(m_Window);
+	}
+
+	void WindowsWindow::SetTitle(const std::string& title)
+	{
+		glfwSetWindowTitle(m_Window, title.c_str());
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)

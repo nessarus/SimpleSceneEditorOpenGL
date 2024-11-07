@@ -10,7 +10,10 @@ project "OpenGL-Sandbox"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"vendor/**.h"
+		"vendor/**.cpp"
+		"assests/**.glsl"
 	}
 
 	includedirs
@@ -20,7 +23,10 @@ project "OpenGL-Sandbox"
 		"../OpenGL-Core/vendor",
 		"../OpenGL-Core/%{IncludeDir.glm}",
 		"../OpenGL-Core/%{IncludeDir.Glad}",
-		"../OpenGL-Core/%{IncludeDir.ImGui}"
+		"../OpenGL-Core/%{IncludeDir.ImGui}",
+		"../OpenGL-Core/%{IncludeDir.stb_image}",
+		"vendor/assimp/include",
+		"src"
 	}
 
 	links
